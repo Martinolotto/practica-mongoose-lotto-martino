@@ -1,31 +1,33 @@
-# Practica de MongoDB y Mongoose
+# Práctica de MongoDB y Mongoose
 
 - Alumno: Lotto Martino
 
-#### Modelos definidos:
+#### Modelos definidos
+
+Gestion de proyectos 
 
 ```
-- User
-- Profile
-- Task
-- Role
+- Departamento - Department: name, location
+- Empleado - Employee: name, email, department, projects[]
+- Proyecto - Project: name, status, milestones[]
+- Contrato - Contract: employee, type, startDate
 ```
 
-#### Relaciones:
+#### Relaciones
 
 ```
-- 1:1 -> User <-> Profile
-- 1:N -> User -> Task
-- N:M -> User <-> Role
-- Embebidos User.addresses
+- 1:1 -> Employee <-> Contract
+- 1:N -> Department -> Employee
+- N:M -> Employee <-> Project
+- Embebido -> Project.milestones[]
 ```
 
 #### Justificación de las relaciones
 
-- **User.addresses (Embebido):** Las direcciones se almacenan dentro del usuario porque pertenecen directamente a él y normalmente se consultan junto con sus datos.
+**1:1 - Employee y Contract:** Un empleado puede tener un único contrato vigente, y cada contrato corresponde a un solo empleado. Uso documentos referenciados para mantener los datos del contrato separados de los datos del empleado. La referencia se guarda en `Contract.employee` como un ObjectId único.
 
-- **User - Profile (1:1):** Se utiliza una referencia para separar la información personal de los datos de acceso. Cada usuario puede tener un único perfil.
+ **1:N - Department y Employee:** Un departamento puede tener muchos empleados, pero cada empleado pertenece a un solo departamento. Uso referencias porque cada empleado se guarda de forma independiente y tiene el ID del departamento al que pertenece. La referencia se guarda en `Employee.department` como un ObjectId.
 
-- **User - Task (1:N):** Cada tarea referencia a su autor mediante un ObjectId. Esto permite gestionar las tareas independientemente y consultar todas las tareas de un usuario.
+**N:M - Employee y Project:** Un empleado puede participar en varios proyectos, y un mismo proyecto puede tener muchos empleados. Uso referencias porque los proyectos se guardan por separado y pueden tener varios empleados asignados sin duplicar sus datos. Las referencias se guardan en `Employee.projects[]` como un arreglo de ObjectId.
 
-- **User - Role (N:M):** Los usuarios pueden tener varios roles y cada rol puede pertenecer a múltiples usuarios. Se utilizan referencias para reutilizar los roles sin duplicar sus datos.
+**Embebido - Project.milestones[]:** Un proyecto puede tener varios hitos o etapas que se deben completar. Uso documentos embebidos porque los hitos forman parte de cada proyecto y no necesitamos guardarlos en otra colección. Se almacenan en `Project.milestones[]` como un arreglo de objetos con `name` y `completed`.

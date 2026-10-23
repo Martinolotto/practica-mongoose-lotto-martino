@@ -1,0 +1,41 @@
+import { model, Schema, Types } from "mongoose";
+
+const employeeSchema = new Schema({
+    name: {
+        type: String,
+        required: true, // campo obligatorio
+    },
+
+    email: {
+        type: String,
+        required: true, // campo obligatorio
+        unique: true, // valor único en la colección
+    },
+
+//1:N, cada empleado guarda el id de su departamento
+    department: {
+        type: Schema.Types.ObjectId,
+        ref:"Department",
+        required: true, // campo obligatorio
+    },
+
+//N:M cada empleado puede tner varios id de proyectos
+//tipo arreglo, porque podemos almacenar variois elementos, las llaves indican el modelo a seguir para guardar las referencias
+    projects: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Project",
+        }
+    ],
+},
+{
+    timestamps: true,
+    versionKey: false
+}
+);
+
+
+//para permitir que los virtuales se muestren en las respuestas json
+employeeSchema.set("toJSON", { virtuals: true });
+
+export const EmployeeModel = model("Employee", employeeSchema);
