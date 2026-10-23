@@ -87,10 +87,14 @@ export const updateContract = async (req, res) => {
       });
     }
 
-    const updatedContract = await ContractModel.findByIdAndUpdate(id, updates, {
+    const updatedContract = await ContractModel.findByIdAndUpdate
+      (
+        id,
+        updates,
+      {
       returnDocument: "after",
       runValidators: true,
-    });
+      });
 
     if (!updatedContract) {
       return res.status(404).json({
