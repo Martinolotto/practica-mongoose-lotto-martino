@@ -4,7 +4,10 @@ import cors from "cors";
 import "dotenv/config";
 
 //routers
-
+import { departmentRouter } from "./src/routes/department.routes.js";
+import { projectRouter } from "./src/routes/project.routes.js";
+import { employeeRouter } from "./src/routes/employee.routes.js";
+import { contractRouter } from "./src/routes/contract.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3005;
@@ -23,6 +26,10 @@ app.get("/", (req, res) => {
 });
 
 //rutas
+app.use("/api", departmentRouter);
+app.use("/api", projectRouter);
+app.use("/api", employeeRouter);
+app.use("/api", contractRouter);
 
 const startServer = async () => {
   try {

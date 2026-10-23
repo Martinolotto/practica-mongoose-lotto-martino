@@ -34,6 +34,13 @@ const employeeSchema = new Schema({
 }
 );
 
+// Relación 1:1 inversa: contrato correspondiente al empleado.
+employeeSchema.virtual("contract", {
+  ref: "Contract",
+  localField: "_id",      // Employee._id
+  foreignField: "employee", // Contract.employee
+  justOne: true,
+});
 
 //para permitir que los virtuales se muestren en las respuestas json
 employeeSchema.set("toJSON", { virtuals: true });

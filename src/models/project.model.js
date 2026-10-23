@@ -14,7 +14,7 @@ const projectSchema = new Schema(
       required: true,
     },
 
-    // Documentos embebidos: hitos propios del proyecto.
+    // Documentos embebidos: objetivos propios del proyecto.
     milestones: [
       {
         name: {
@@ -34,5 +34,14 @@ const projectSchema = new Schema(
     versionKey: false,
   },
 );
+// Relación N:M inversa: empleados asignados a un proyecto.
+projectSchema.virtual("employees", {
+  ref: "Employee",
+  localField: "_id",       // Project._id
+  foreignField: "projects", // Employee.projects[]
+  justOne: false,
+});
+
+projectSchema.set("toJSON", { virtuals: true });
 
 export const ProjectModel = model("Project", projectSchema);
