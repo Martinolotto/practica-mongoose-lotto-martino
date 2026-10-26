@@ -1,6 +1,8 @@
 import { EmployeeModel } from "../models/employee.model.js";
 // Lo necesitamos para dar de baja el contrato del empleado.
 import { ContractModel } from "../models/contract.model.js";
+//endpoint N:M para poder agregar un elemento, proyecto al arreglo solo si no existe.
+import { ProjectModel } from "../models/project.model.js";
 
 //Crear empleado
 export const createEmployee = async (req, res) => {
@@ -170,6 +172,66 @@ export const deleteEmployee = async (req, res) => {
     return res.status(200).json({
       msg: "Empleado eliminado correctamente",
       data: deletedEmployee,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      msg: "Error interno del servidor",
+    });
+  }
+};
+
+//añadir un proyecto a un empleado 
+export const addProjectToEmployee = async (req, res) => {
+  try {
+    // Recibimos los dos IDs desde la URL.
+    const { id, projectId } = req.params;
+
+    // Buscamos al empleado siempre que no esté eliminado
+    const employee = await EmployeeModel.findOne({
+      _id: id,
+      isDeleted: { $ne: true },
+    });
+
+    if (!employee) {
+      return res.status(404).json({
+        msg: "Empleado no encontrado",
+      });
+    }
+
+    // Comprobamos que el proyecto exista y esté disponible.
+    const project = await ProjectModel.findOne({
+      _id: projectId,
+      isDeleted: { $ne: true },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        msg: "Proyecto no encontrado",
+      });
+    }
+
+    // Revisamos si el empleado ya tiene asignado ese proyecto.
+    const alreadyAssigned = employee.projects.some((id) => //some recorre el arreglo y devuelve true cuando encuentra un elemento que cumple una condicion.
+      id.equals(project._id), //equals para comparar los object ids
+    );
+
+    if (alreadyAssigned) {
+      return res.status(409).json({
+        msg: "El empleado ya está asignado a este proyecto",
+      });
+    }
+
+    // Agregamos el ID al arreglo sin borrar los proyectos anteriores.
+    const updatedEmployee = await EmployeeModel.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } },
+      { $addToSet: { projects: project._id } }, // agrega el id al arreglo sin reemplazar los elementos, evita 
+      { returnDocument: "after", runValidators: true },
+    );
+
+    return res.status(200).json({
+      msg: "Proyecto asignado correctamente",
+      data: updatedEmployee,
     });
   } catch (error) {
     console.log(error);
