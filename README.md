@@ -20,6 +20,15 @@ Gestion de proyectos
 - 1:N -> Department -> Employee
 - N:M -> Employee <-> Project
 - Embebido -> Project.milestones[]
+
+---
+
+Employee → Department Directa
+Employee → Projects Directa
+Contract → Employee Directa
+Department → Employees Virtual
+Project → Employees Virtual
+Employee → Contract Virtual
 ```
 
 #### Justificación de las relaciones

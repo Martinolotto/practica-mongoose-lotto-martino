@@ -12,6 +12,11 @@ const departmentSchema = new Schema(
       type: String,
       required: true,
     },
+    // Indica si el departamento fue eliminado lógicamente.
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

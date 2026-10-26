@@ -19,6 +19,11 @@ const contractSchema = new Schema(
       type: Date,
       required: true,
     },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

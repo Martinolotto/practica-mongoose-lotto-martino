@@ -28,13 +28,15 @@ export const createDepartment = async (req, res) => {
 export const getAllDepartments = async (req, res) => {
   try {
     //busca en el modelo
-    const departments = await DepartmentModel.find();
+    // Buscamos departamentos que no estén eliminados.
+    const departments = await DepartmentModel.find({
+      isDeleted: { $ne: true },
+    });
 
     return res.status(200).json({
       msg: "Lista de Departamentos",
       departments,
     });
-
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -52,8 +54,17 @@ export const getDepartmentById = async (req, res) => {
     //metodo2, virtual populate, con cambios en el modelo
     //recorrido inverso al populate, sin referenciar directamente en el modelo a las tareas.
     //consultar las employees desde departments
-    const department = await DepartmentModel.findById(id)
-      .populate("employees","name department") //usa la relacion virtual
+
+    // Buscamos el departamento por ID, siempre que no esté eliminado.
+    const department = await DepartmentModel.findOne({
+      _id: id,
+      isDeleted: { $ne: true },
+    }).populate({
+      path: "employees", // Relación virtual de Department
+      select: "name department", // Datos del empleado que mostramos
+      //condicion que se aplica a los documentos relacionados que trae populate
+      match: { isDeleted: { $ne: true } }, // Solo empleados activos
+    });
 
     if (!department) {
       return res.status(404).json({
@@ -66,7 +77,6 @@ export const getDepartmentById = async (req, res) => {
       data: department,
       //cuando repondemos con json, el toJSON: { virtuals: true del modelo permite incluir esta propiedad
     });
-
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -95,15 +105,13 @@ export const updateDepartment = async (req, res) => {
       });
     }
 
-    const updateDepartment = await DepartmentModel.findByIdAndUpdate(
-      //busca coincidencia
-      id,
-      updates,
-      //para que muestre todos los datos despues de actualizar
-      //after mostramos lo ultimo que se actualizo, before muestra antes de actualizarse
+    // Solo actualizamos si el departamento sigue activo.
+    const updatedDepartment = await DepartmentModel.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } }, // Condiciones para encontrarlo
+      updates, // Campos que enviamos en el PUT
       {
-        returnDocument: "after", 
-        runValidators: true,
+        returnDocument: "after", // Devolver los valores actualizados
+        runValidators: true, // Aplicar validaciones del Schema
       },
     );
 
@@ -125,17 +133,44 @@ export const updateDepartment = async (req, res) => {
   }
 };
 
+import { EmployeeModel } from "../models/employee.model.js";
 //borrar Departamento
 export const deleteDepartment = async (req, res) => {
   try {
     //Obtener el id desde params
     const { id } = req.params;
 
-    // Buscar y eliminar el documento por id
-    const deletedDepartment = await DepartmentModel.findByIdAndDelete(id);
+    // Primero comprobamos que el departamento exista y esté activo.
+    const department = await DepartmentModel.findOne({
+      _id: id,
+      isDeleted: { $ne: true },
+    });
 
-    // otra forma:
-    // const deletedUser2 = await UserModel.deleteOne({ _id: id });
+    if (!department) {
+      return res.status(404).json({
+        msg: "Departamento no encontrado",
+      });
+    }
+
+    // Contamos cuántos empleados activos pertenecen al departamento.
+    const activeEmployees = await EmployeeModel.countDocuments({
+      department: id,
+      isDeleted: { $ne: true },
+    });
+
+    // Si todavía tiene empleados activos, no permitimos eliminarlo.
+    if (activeEmployees > 0) {
+      return res.status(409).json({ //conflict
+        msg: "No se puede eliminar un departamento con empleados activos",
+      });
+    }
+
+    // Si no tiene empleados activos, lo marcamos como eliminado.
+    const deletedDepartment = await DepartmentModel.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } },
+      { $set: { isDeleted: true } },
+      { returnDocument: "after" },
+    );
 
     if (!deletedDepartment) {
       return res.status(404).json({
@@ -147,7 +182,6 @@ export const deleteDepartment = async (req, res) => {
       msg: "Departamento eliminado correctamente",
       data: deletedDepartment,
     });
-
   } catch (error) {
     console.log(error);
     return res.status(500).json({

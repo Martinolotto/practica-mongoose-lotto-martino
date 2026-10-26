@@ -26,7 +26,10 @@ export const createProject = async (req, res) => {
 // Obtener todos los proyectos
 export const getAllProjects = async (req, res) => {
   try {
-    const projects = await ProjectModel.find();
+    const projects = await ProjectModel.find({
+      isDeleted: { $ne: true } //comprobamos que no muestre documentos que esten borrados
+      //$ne = distinto de
+    });
 
     return res.status(200).json({
       msg: "Lista de proyectos",
@@ -46,7 +49,11 @@ export const getProjectById = async (req, res) => {
     const { id } = req.params;
 
     // Relación N:M inversa: empleados asignados al proyecto.
-    const project = await ProjectModel.findById(id).populate(
+    //finOne busca un documento que cumpla las condicones que indicamos
+    const project = await ProjectModel.findOne({
+      _id: id, //comparamos el id solicitado y
+      isDeleted: { $ne:true } // que no este eliminado
+    }).populate(
       "employees",
       "name projects",
     );
@@ -77,17 +84,22 @@ export const updateProject = async (req, res) => {
 
     const updates = {};
 
+    //solo agregamos los campos que se enviaron.
     if (name !== undefined) updates.name = name;
     if (status !== undefined) updates.status = status;
     if (milestones !== undefined) updates.milestones = milestones;
 
+    //comprobamos que no venga vacio
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
         msg: "No se enviaron campos para actualizar",
       });
     }
-
-    const updatedProject = await ProjectModel.findByIdAndUpdate(id, updates, {
+    //no permiti modificaciones sobre un proyecto que ya eliminamos logicamente 
+    const updatedProject = await ProjectModel.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } }, //lo que queremos encontrar
+    updates, //los datos que se van a modificar
+    {
       returnDocument: "after",
       runValidators: true,
     });
@@ -115,7 +127,11 @@ export const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedProject = await ProjectModel.findByIdAndDelete(id);
+    const deletedProject = await ProjectModel.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } }, //buscamos por id, solo si no esta eliminado
+      { $set: { isDeleted: true } }, //cambiamos con set, el isdelete a true si no lo estaba 
+      { returnDocument: "after" } //pedimos el documento despues de modificarlo
+    );
 
     if (!deletedProject) {
       return res.status(404).json({

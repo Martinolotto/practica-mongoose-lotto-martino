@@ -28,6 +28,11 @@ const projectSchema = new Schema(
         },
       },
     ],
+//esta eliminado? 
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

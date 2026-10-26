@@ -26,7 +26,9 @@ export const createContract = async (req, res) => {
 // Obtener todos los contratos
 export const getAllContracts = async (req, res) => {
   try {
-    const contracts = await ContractModel.find();
+    const contracts = await ContractModel.find({
+      isDeleted: { $ne: true },
+    });
 
     return res.status(200).json({
       msg: "Lista de contratos",
@@ -46,10 +48,11 @@ export const getContractById = async (req, res) => {
     const { id } = req.params;
 
     // Referencia directa al empleado del contrato.
-    const contract = await ContractModel.findById(id).populate(
-      "employee",
-      "name email",
-    );
+    const contract = await ContractModel.findOne({
+      _id: id,
+      isDeleted: { $ne: true },
+    })
+    .populate("employee", "name email");
 
     if (!contract) {
       return res.status(404).json({
@@ -87,14 +90,14 @@ export const updateContract = async (req, res) => {
       });
     }
 
-    const updatedContract = await ContractModel.findByIdAndUpdate
-      (
-        id,
-        updates,
+    const updatedContract = await ContractModel.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } },
+      updates,
       {
-      returnDocument: "after",
-      runValidators: true,
-      });
+        returnDocument: "after",
+        runValidators: true,
+      },
+    );
 
     if (!updatedContract) {
       return res.status(404).json({
@@ -119,7 +122,11 @@ export const deleteContract = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedContract = await ContractModel.findByIdAndDelete(id);
+    const deletedContract = await ContractModel.findOneAndUpdate(
+      { _id: id, isDeleted: { $ne: true } },
+      { $set: { isDeleted: true } },
+      { returnDocument: "after" },
+    );
 
     if (!deletedContract) {
       return res.status(404).json({
