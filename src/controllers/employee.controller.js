@@ -8,7 +8,9 @@ import { ProjectModel } from "../models/project.model.js";
 export const createEmployee = async (req, res) => {
   try {
     //desestructuracion del body
-    const { name, email, department, projects } = req.body;
+    const { name, email, department, projects } = matchedData(req, {
+      locations: ["body"],
+    });
 
     const newEmployee = await EmployeeModel.create({
       name,
@@ -91,7 +93,9 @@ export const getEmployeeById = async (req, res) => {
 export const updateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, department, projects } = req.body;
+const { name, email, department, projects } = matchedData(req, {
+  locations: ["body"],
+});
 
     //objeto con campos que se van a actualizar
     const updates = {};

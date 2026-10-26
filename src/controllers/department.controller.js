@@ -4,7 +4,7 @@ import { DepartmentModel } from "../models/department.model.js";
 export const createDepartment = async (req, res) => {
   try {
     //desestructuracion del body
-    const { name, location } = req.body;
+const { name, location } = matchedData(req, { locations: ["body"] });
 
     const newDepartment = await DepartmentModel.create({
       name,
@@ -89,7 +89,7 @@ export const getDepartmentById = async (req, res) => {
 export const updateDepartment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, location } = req.body;
+    const { name, location } = matchedData(req, { locations: ["body"] });
 
     //objeto con campos que se van a actualizar
     const updates = {};

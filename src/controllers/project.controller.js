@@ -3,7 +3,9 @@ import { ProjectModel } from "../models/project.model.js";
 // Crear proyecto
 export const createProject = async (req, res) => {
   try {
-    const { name, status, milestones } = req.body;
+    const { name, status, milestones } = matchedData(req, {
+      locations: ["body"],
+    });
 
     const newProject = await ProjectModel.create({
       name,
@@ -80,7 +82,9 @@ export const getProjectById = async (req, res) => {
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, status, milestones } = req.body;
+    const { name, status, milestones } = matchedData(req, {
+      locations: ["body"],
+    });
 
     const updates = {};
 

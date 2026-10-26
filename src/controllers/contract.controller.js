@@ -3,7 +3,9 @@ import { ContractModel } from "../models/contract.model.js";
 // Crear contrato
 export const createContract = async (req, res) => {
   try {
-    const { employee, type, startDate } = req.body;
+    const { employee, type, startDate } = matchedData(req, {
+      locations: ["body"],
+    });
 
     const newContract = await ContractModel.create({
       employee,
@@ -76,7 +78,9 @@ export const getContractById = async (req, res) => {
 export const updateContract = async (req, res) => {
   try {
     const { id } = req.params;
-    const { employee, type, startDate } = req.body;
+    const { employee, type, startDate } = matchedData(req, {
+      locations: ["body"],
+    });
 
     const updates = {};
 

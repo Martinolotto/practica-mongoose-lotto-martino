@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { validate } from "../middlewares/validate.js";
 
 import {
   createContract,
@@ -8,14 +9,40 @@ import {
   updateContract,
 } from "../controllers/contract.controller.js";
 
-export const contractRouter = Router();
+import {
+  createContractValidations,
+  getContractByIdValidations,
+  updateContractValidations,
+  deleteContractValidations,
+} from "../middlewares/contract.validation.js";
 
-contractRouter.post("/contract", createContract);
+export const contractRouter = Router();
+contractRouter.post(
+  "/contract",
+  createContractValidations,
+  validate,
+  createContract,
+);
 
 contractRouter.get("/contract", getAllContracts);
 
-contractRouter.get("/contract/:id", getContractById);
+contractRouter.get(
+  "/contract/:id",
+  getContractByIdValidations,
+  validate,
+  getContractById,
+);
 
-contractRouter.put("/contract/:id", updateContract);
+contractRouter.put(
+  "/contract/:id",
+  updateContractValidations,
+  validate,
+  updateContract,
+);
 
-contractRouter.delete("/contract/:id", deleteContract);
+contractRouter.delete(
+  "/contract/:id",
+  deleteContractValidations,
+  validate,
+  deleteContract,
+);
